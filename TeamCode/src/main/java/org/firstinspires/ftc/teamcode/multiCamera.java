@@ -18,7 +18,7 @@ public class multiCamera extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
-        int [] portalList = VisionPortal.makeMultiPortalView(2, VisionPortal.MultiPortalLayout.HORIZONTAL);
+        int [] portalList = VisionPortal.makeMultiPortalView(4, VisionPortal.MultiPortalLayout.HORIZONTAL);
 
         AprilTagProcessor tagProcessor1 = new AprilTagProcessor.Builder()
                 .setDrawAxes(true)
@@ -28,6 +28,20 @@ public class multiCamera extends LinearOpMode {
                 .build();
 
         AprilTagProcessor tagProcessor2 = new AprilTagProcessor.Builder()
+                .setDrawAxes(true)
+                .setDrawCubeProjection(true)
+                .setDrawTagID(true)
+                .setDrawTagOutline(true)
+                .build();
+
+        AprilTagProcessor tagProcessor3 = new AprilTagProcessor.Builder()
+                .setDrawAxes(true)
+                .setDrawCubeProjection(true)
+                .setDrawTagID(true)
+                .setDrawTagOutline(true)
+                .build();
+
+        AprilTagProcessor tagProcessor4 = new AprilTagProcessor.Builder()
                 .setDrawAxes(true)
                 .setDrawCubeProjection(true)
                 .setDrawTagID(true)
@@ -48,6 +62,22 @@ public class multiCamera extends LinearOpMode {
                 .setCameraResolution(new Size(640,480))
                 .enableLiveView(true)
                 .setLiveViewContainerId(portalList[1])
+                .build();
+
+        VisionPortal visionPortal3 = new VisionPortal.Builder()
+                .addProcessor(tagProcessor3)
+                .setCamera(hardwareMap.get(WebcamName.class, "Webcam 2"))
+                .setCameraResolution(new Size(640,480))
+                .enableLiveView(true)
+                .setLiveViewContainerId(portalList[2])
+                .build();
+
+        VisionPortal visionPortal4 = new VisionPortal.Builder()
+                .addProcessor(tagProcessor4)
+                .setCamera(hardwareMap.get(WebcamName.class, "Webcam 2"))
+                .setCameraResolution(new Size(640,480))
+                .enableLiveView(true)
+                .setLiveViewContainerId(portalList[3])
                 .build();
 
 

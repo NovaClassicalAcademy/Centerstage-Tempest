@@ -43,22 +43,26 @@ public class openCV extends LinearOpMode {
     public void runOpMode() {
 
         initOpenCV();
-        FtcDashboard dashboard = FtcDashboard.getInstance();
-        telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
-        FtcDashboard.getInstance().startCameraStream(controlHubCam, 30);
+        //FtcDashboard dashboard = FtcDashboard.getInstance();
+        //telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
+        //FtcDashboard.getInstance().startCameraStream(controlHubCam, 30);
 
 
         waitForStart();
 
         while (opModeIsActive()) {
+            if(cX < 213) {
+                //left auto
+            } else if(cX < 426 && cX > 213) {
+                //middle auto
+            } else if (cX > 426){
+                //leftAuto
+            }
             telemetry.addData("Coordinate", "(" + (int) cX + ", " + (int) cY + ")");
             telemetry.addData("Distance in Inch", (getDistance(width)));
             telemetry.update();
 
-            // The OpenCV pipeline automatically processes frames and handles detection
         }
-
-        // Release resources
         controlHubCam.stopStreaming();
     }
 
@@ -92,23 +96,17 @@ public class openCV extends LinearOpMode {
             MatOfPoint largestContour = findLargestContour(contours);
 
             if (largestContour != null) {
-                // Draw a red outline around the largest detected object
                 Imgproc.drawContours(input, contours, contours.indexOf(largestContour), new Scalar(255, 0, 0), 2);
-                // Calculate the width of the bounding box
                 width = calculateWidth(largestContour);
 
-                // Display the width next to the label
                 String widthLabel = "Width: " + (int) width + " pixels";
                 Imgproc.putText(input, widthLabel, new Point(cX + 10, cY + 20), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
-                //Display the Distance
                 String distanceLabel = "Distance: " + String.format("%.2f", getDistance(width)) + " inches";
                 Imgproc.putText(input, distanceLabel, new Point(cX + 10, cY + 60), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
-                // Calculate the centroid of the largest contour
                 Moments moments = Imgproc.moments(largestContour);
                 cX = moments.get_m10() / moments.get_m00();
                 cY = moments.get_m01() / moments.get_m00();
 
-                // Draw a dot at the centroid
                 String label = "(" + (int) cX + ", " + (int) cY + ")";
                 Imgproc.putText(input, label, new Point(cX + 10, cY), Imgproc.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 255, 0), 2);
                 Imgproc.circle(input, new Point(cX, cY), 5, new Scalar(0, 255, 0), -1);

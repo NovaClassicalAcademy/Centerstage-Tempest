@@ -80,8 +80,6 @@ public class CameraFusedPID extends LinearOpMode {
             telemetry.addData("Coordinate", "(" + (int) cX + ", " + (int) cY + ")");
             telemetry.addData("Distance in Inch", (getDistance(width)));
             telemetry.update();
-
-            // The OpenCV pipeline automatically processes frames and handles detection
         }
 
         // Release resources
@@ -151,6 +149,8 @@ public class CameraFusedPID extends LinearOpMode {
             Scalar lowerYellow = new Scalar(0, 100, 100);
             Scalar upperYellow = new Scalar(30, 255, 255);
 
+            Scalar lowerWhite = new Scalar(79, 0, 110);
+            Scalar upperWhite = new Scalar(109, 72, 230);
 
             Mat yellowMask = new Mat();
             Core.inRange(hsvFrame, lowerYellow, upperYellow, yellowMask);
