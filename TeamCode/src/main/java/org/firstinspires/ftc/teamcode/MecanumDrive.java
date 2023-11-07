@@ -91,7 +91,7 @@ public final class MecanumDrive {
     public final AccelConstraint defaultAccelConstraint =
             new ProfileAccelConstraint(PARAMS.minProfileAccel, PARAMS.maxProfileAccel);
 
-    public final DcMotorEx leftFront, leftBack, rightBack, rightFront;
+    public final DcMotorEx frontLeft, frontRight, backLeft, backRight;
 
     public final VoltageSensor voltageSensor;
 
@@ -103,31 +103,31 @@ public final class MecanumDrive {
     private final LinkedList<Pose2d> poseHistory = new LinkedList<>();
 
     public class DriveLocalizer implements Localizer {
-        public final Encoder leftFront, leftBack, rightBack, rightFront;
+        public final Encoder frontLeft, frontRight, backLeft, backRight;
 
         private int lastLeftFrontPos, lastLeftBackPos, lastRightBackPos, lastRightFrontPos;
         private Rotation2d lastHeading;
 
         public DriveLocalizer() {
-            leftFront = new OverflowEncoder(new RawEncoder(MecanumDrive.this.leftFront));
-            leftBack = new OverflowEncoder(new RawEncoder(MecanumDrive.this.leftBack));
-            rightBack = new OverflowEncoder(new RawEncoder(MecanumDrive.this.rightBack));
-            rightFront = new OverflowEncoder(new RawEncoder(MecanumDrive.this.rightFront));
+            frontLeft = new OverflowEncoder(new RawEncoder(MecanumDrive.this.frontLeft));
+            frontRight  = new OverflowEncoder(new RawEncoder(MecanumDrive.this.frontRight));
+            backLeft = new OverflowEncoder(new RawEncoder(MecanumDrive.this.backLeft));
+            backRight = new OverflowEncoder(new RawEncoder(MecanumDrive.this.backRight));
 
-            lastLeftFrontPos = leftFront.getPositionAndVelocity().position;
-            lastLeftBackPos = leftBack.getPositionAndVelocity().position;
-            lastRightBackPos = rightBack.getPositionAndVelocity().position;
-            lastRightFrontPos = rightFront.getPositionAndVelocity().position;
+            lastLeftFrontPos = frontLeft.getPositionAndVelocity().position;
+            lastRightFrontPos = frontRight.getPositionAndVelocity().position;
+            lastLeftBackPos = backLeft.getPositionAndVelocity().position;
+            lastRightBackPos = backRight.getPositionAndVelocity().position;
 
             lastHeading = Rotation2d.exp(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
         }
 
         @Override
         public Twist2dDual<Time> update() {
-            PositionVelocityPair leftFrontPosVel = leftFront.getPositionAndVelocity();
-            PositionVelocityPair leftBackPosVel = leftBack.getPositionAndVelocity();
-            PositionVelocityPair rightBackPosVel = rightBack.getPositionAndVelocity();
-            PositionVelocityPair rightFrontPosVel = rightFront.getPositionAndVelocity();
+            PositionVelocityPair leftFrontPosVel = frontLeft.getPositionAndVelocity();
+            PositionVelocityPair leftBackPosVel = backLeft.getPositionAndVelocity();
+            PositionVelocityPair rightBackPosVel = backRight.getPositionAndVelocity();
+            PositionVelocityPair rightFrontPosVel = frontRight.getPositionAndVelocity();
 
             Rotation2d heading = Rotation2d.exp(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
             double headingDelta = heading.minus(lastHeading);
@@ -174,15 +174,15 @@ public final class MecanumDrive {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
-        leftFront = hardwareMap.get(DcMotorEx.class, "leftFront");
-        leftBack = hardwareMap.get(DcMotorEx.class, "leftBack");
-        rightBack = hardwareMap.get(DcMotorEx.class, "rightBack");
-        rightFront = hardwareMap.get(DcMotorEx.class, "rightFront");
+        frontLeft = hardwareMap.get(DcMotorEx.class, "fl");
+        frontRight = hardwareMap.get(DcMotorEx.class, "fr");
+        backLeft = hardwareMap.get(DcMotorEx.class, "bl");
+        backRight = hardwareMap.get(DcMotorEx.class, "br");
 
-        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
@@ -206,10 +206,10 @@ public final class MecanumDrive {
             maxPowerMag = Math.max(maxPowerMag, power.value());
         }
 
-        leftFront.setPower(wheelVels.leftFront.get(0) / maxPowerMag);
-        leftBack.setPower(wheelVels.leftBack.get(0) / maxPowerMag);
-        rightBack.setPower(wheelVels.rightBack.get(0) / maxPowerMag);
-        rightFront.setPower(wheelVels.rightFront.get(0) / maxPowerMag);
+        frontLeft.setPower(wheelVels.leftFront.get(0) / maxPowerMag);
+        backLeft.setPower(wheelVels.leftBack.get(0) / maxPowerMag);
+        backRight.setPower(wheelVels.rightBack.get(0) / maxPowerMag);
+        frontRight.setPower(wheelVels.rightFront.get(0) / maxPowerMag);
     }
 
     public final class FollowTrajectoryAction implements Action {
@@ -244,10 +244,10 @@ public final class MecanumDrive {
             }
 
             if (t >= timeTrajectory.duration) {
-                leftFront.setPower(0);
-                leftBack.setPower(0);
-                rightBack.setPower(0);
-                rightFront.setPower(0);
+                frontLeft.setPower(0);
+                frontRight.setPower(0);
+                backLeft.setPower(0);
+                backRight.setPower(0);
 
                 return false;
             }
@@ -266,10 +266,10 @@ public final class MecanumDrive {
             double voltage = voltageSensor.getVoltage();
 
             final MotorFeedforward feedforward = new MotorFeedforward(PARAMS.kS, PARAMS.kV / PARAMS.inPerTick, PARAMS.kA / PARAMS.inPerTick);
-            leftFront.setPower(feedforward.compute(wheelVels.leftFront) / voltage);
-            leftBack.setPower(feedforward.compute(wheelVels.leftBack) / voltage);
-            rightBack.setPower(feedforward.compute(wheelVels.rightBack) / voltage);
-            rightFront.setPower(feedforward.compute(wheelVels.rightFront) / voltage);
+            frontLeft.setPower(feedforward.compute(wheelVels.leftFront) / voltage);
+            frontRight.setPower(feedforward.compute(wheelVels.leftBack) / voltage);
+            backLeft.setPower(feedforward.compute(wheelVels.rightBack) / voltage);
+            backRight.setPower(feedforward.compute(wheelVels.rightFront) / voltage);
 
             FlightRecorder.write("TARGET_POSE", new PoseMessage(txWorldTarget.value()));
 
@@ -327,10 +327,10 @@ public final class MecanumDrive {
             }
 
             if (t >= turn.duration) {
-                leftFront.setPower(0);
-                leftBack.setPower(0);
-                rightBack.setPower(0);
-                rightFront.setPower(0);
+                frontLeft.setPower(0);
+                frontRight.setPower(0);
+                backLeft.setPower(0);
+                backRight.setPower(0);
 
                 return false;
             }
@@ -348,10 +348,10 @@ public final class MecanumDrive {
             MecanumKinematics.WheelVelocities<Time> wheelVels = kinematics.inverse(command);
             double voltage = voltageSensor.getVoltage();
             final MotorFeedforward feedforward = new MotorFeedforward(PARAMS.kS, PARAMS.kV / PARAMS.inPerTick, PARAMS.kA / PARAMS.inPerTick);
-            leftFront.setPower(feedforward.compute(wheelVels.leftFront) / voltage);
-            leftBack.setPower(feedforward.compute(wheelVels.leftBack) / voltage);
-            rightBack.setPower(feedforward.compute(wheelVels.rightBack) / voltage);
-            rightFront.setPower(feedforward.compute(wheelVels.rightFront) / voltage);
+            frontLeft.setPower(feedforward.compute(wheelVels.leftFront) / voltage);
+            backLeft.setPower(feedforward.compute(wheelVels.leftBack) / voltage);
+            backRight.setPower(feedforward.compute(wheelVels.rightBack) / voltage);
+            frontRight.setPower(feedforward.compute(wheelVels.rightFront) / voltage);
 
             FlightRecorder.write("TARGET_POSE", new PoseMessage(txWorldTarget.value()));
 
