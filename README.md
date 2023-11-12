@@ -1,4 +1,1 @@
-# Road Runner Quickstart
-
-Check out the [docs](https://rr.brott.dev/docs/v1-0/tuning/).
-
+This is the offfical Repository for Team Tempest-6699 from Nova Classical Academy. The code includes a separate class for each subsystem for ease of use and readability.
