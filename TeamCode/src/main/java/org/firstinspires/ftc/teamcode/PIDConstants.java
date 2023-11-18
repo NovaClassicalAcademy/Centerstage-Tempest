@@ -1,8 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
+@Disabled
 @Config
 public class PIDConstants {
     public static double Kp = 2;  // Proportional gain
