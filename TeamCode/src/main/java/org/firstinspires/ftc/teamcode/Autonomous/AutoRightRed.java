@@ -4,6 +4,7 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -11,7 +12,7 @@ import org.firstinspires.ftc.teamcode.Utilities.ColourMassDetectionProcessor;
 import org.firstinspires.ftc.teamcode.Utilities.MecanumDrive;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.opencv.core.Scalar;
-
+@Disabled
 @Autonomous
 public class AutoRightRed extends OpMode {
     private VisionPortal visionPortal;

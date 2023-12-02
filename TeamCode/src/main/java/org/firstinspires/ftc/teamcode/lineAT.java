@@ -19,7 +19,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.concurrent.TimeUnit;
 
-@Disabled
+
 @Autonomous(name = "tag")
 public class lineAT extends LinearOpMode {
     int angleSensitivity = 2;

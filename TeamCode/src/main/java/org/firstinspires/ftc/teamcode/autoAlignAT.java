@@ -20,10 +20,10 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.concurrent.TimeUnit;
 
-@Disabled
+
 @Autonomous(name = "tagAlignment")
 public class autoAlignAT extends LinearOpMode {
-    int angleSensitivity= 2;
+    int angleSensitivity= 5;
     int strafeSensitivity = 6;
     boolean Angled;
     boolean Centered;
@@ -95,13 +95,13 @@ public class autoAlignAT extends LinearOpMode {
         DcMotor frontRight = hardwareMap.dcMotor.get("fr");
         DcMotor backRight = hardwareMap.dcMotor.get("br");
         if (StrafeError < (320 - strafeSensitivity)) {
-            float StPower = 0.12f;
+            float StPower = 0.15f;
             frontLeft.setPower(-StPower);
             frontRight.setPower(StPower);
             backLeft.setPower(StPower);
             backRight.setPower(-StPower);
         } else if (StrafeError > (320 + strafeSensitivity)) {
-            float StPower = 0.12f;
+            float StPower = 0.15f;
             frontLeft.setPower(StPower);
             frontRight.setPower(-StPower);
             backLeft.setPower(-StPower);
@@ -164,15 +164,13 @@ public class autoAlignAT extends LinearOpMode {
                 int distance = (int) tag.ftcPose.range;
                 float StrafeError = (float) tag.center.x;
 
-                if(!DistanceAway){
-                    SetDistance(distance);
-                }
-                if (DistanceAway && !Angled) {
+
+                if (!Angled) {
                     SetAngle(AngleError);
-                }
-                if(!Centered && Angled) {
+                }else if(!Centered){
                     Center(StrafeError);
                 }
+
 
                 /*telemetry.addData("center", tag.center);
                 telemetry.addData("dist from tag: ", distance);
