@@ -42,6 +42,8 @@ public class autonomous extends LinearOpMode {
         waitForStart();
 
         Forward(50);
+        Forward(-50);
+        Forward(50);
 
         int frontRightPosition = frontRight.getCurrentPosition();
         int frontLeftPosition = frontLeft.getCurrentPosition();
@@ -61,7 +63,7 @@ public class autonomous extends LinearOpMode {
             backLeftPosition = backLeft.getCurrentPosition();
             backRightPosition = backRight.getCurrentPosition();
             robotPosition = (frontRightPosition+frontLeftPosition+backLeftPosition+backRightPosition)/4;
-            positionError = 3759 - robotPosition;
+            positionError = (int) (3132.5f - robotPosition);
 
             telemetry.addData("frontLeftPosition", frontLeftPosition);
             telemetry.addData("frontRightPosition", frontRightPosition);
