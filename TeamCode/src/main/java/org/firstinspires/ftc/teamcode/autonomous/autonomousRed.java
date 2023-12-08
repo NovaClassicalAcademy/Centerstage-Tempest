@@ -27,7 +27,7 @@ import org.openftc.easyopencv.OpenCvPipeline;
 import java.util.ArrayList;
 import java.util.List;
 
-
+@Disabled
 @TeleOp(name = "Test")
 
 public class autonomousRed extends LinearOpMode {

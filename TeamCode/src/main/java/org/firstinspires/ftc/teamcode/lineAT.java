@@ -4,10 +4,12 @@ import static org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit.I
 
 import android.util.Size;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
@@ -27,6 +29,7 @@ public class lineAT extends LinearOpMode {
     boolean Angled;
     boolean Centered;
     boolean DistanceAway;
+    boolean aligned = false;
 
     private DcMotor frontLeft = null;
     private DcMotor frontRight = null;
@@ -92,13 +95,13 @@ public class lineAT extends LinearOpMode {
         DcMotor frontRight = hardwareMap.dcMotor.get("fr");
         DcMotor backRight = hardwareMap.dcMotor.get("br");
         if (StrafeError < (320 - strafeSensitivity)) {
-            float StPower = 0.12f;
+            float StPower = 0.2f;
             frontLeft.setPower(-StPower);
             frontRight.setPower(StPower);
             backLeft.setPower(StPower);
             backRight.setPower(-StPower);
         } else if (StrafeError > (320 + strafeSensitivity)) {
-            float StPower = 0.12f;
+            float StPower = 0.2f;
             frontLeft.setPower(StPower);
             frontRight.setPower(-StPower);
             backLeft.setPower(-StPower);
@@ -109,6 +112,7 @@ public class lineAT extends LinearOpMode {
             backLeft.setPower(0);
             backRight.setPower(0);
             Centered = true;
+            aligned = true;
         }
     }
 
@@ -126,20 +130,23 @@ public class lineAT extends LinearOpMode {
 
 
 
+
+
         waitForStart();
 
         while (!isStopRequested() && opModeIsActive()) {
 
                 autoAlign();
 
-                /*telemetry.addData("center", tag.center);
-                telemetry.addData("dist from tag: ", distance);
+                //telemetry.addData("center", tag.center);
+                //telemetry.addData("dist from tag: ", distance);
                 telemetry.addData("Centered", Centered);
                 telemetry.addData("Angled", Angled);
-                telemetry.addData("yaw", AngleError);
-                telemetry.addData("strafeError", StrafeError);
-                telemetry.addData("fps", myFPS);
-                telemetry.update();*/
+                telemetry.addData("align", aligned);
+                //telemetry.addData("yaw", AngleError);
+                //telemetry.addData("strafeError", StrafeError);
+                //telemetry.addData("fps", myFPS);
+                //telemetry.update();
         }
     }
 
@@ -160,32 +167,49 @@ public class lineAT extends LinearOpMode {
                 .enableLiveView(true)
                 .build();
 
+        IMU imu = hardwareMap.get(IMU.class, "imu");
+        IMU.Parameters parameters = new IMU.Parameters(
+                new RevHubOrientationOnRobot(
+                        RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
+                        RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD));
+        imu.initialize(parameters);
+
         while (visionPortal1.getCameraState() != VisionPortal.CameraState.STREAMING) {
         }
 
         ExposureControl exposure = visionPortal1.getCameraControl(ExposureControl.class);
         exposure.setMode(ExposureControl.Mode.Manual);
-        exposure.setExposure(15, TimeUnit.MILLISECONDS);
+        exposure.setExposure(30, TimeUnit.MILLISECONDS);
 
         GainControl gain = visionPortal1.getCameraControl(GainControl.class);
         gain.setGain(255);
 
-        if (tagProcessor1.getDetections().size() > 0) {
-            AprilTagDetection tag = tagProcessor1.getDetections().get(0);
-            //visionPortal1.stopLiveView();
-            float myFPS = visionPortal1.getFps();
-            int AngleError = (int) tag.ftcPose.yaw;
-            int distance = (int) tag.ftcPose.range;
-            float StrafeError = (float) tag.center.x;
 
-            if (!DistanceAway) {
-                SetDistance(distance);
+        AprilTagDetection targetTag = null;
+
+        if (tagProcessor1.getDetections().size() > 0) {
+
+            for(AprilTagDetection tag: tagProcessor1.getDetections()) {
+                if (tag.metadata.id == 3) {
+                    targetTag = tag;
+                    break;
+                }
             }
-            if (DistanceAway && !Angled) {
-                SetAngle(AngleError);
-            }
-            if (!Centered && Angled) {
-                Center(StrafeError);
+                if (targetTag != null) {
+                    float myFPS = visionPortal1.getFps();
+                    int AngleError = (int) targetTag.ftcPose.yaw;
+                    int distance = (int) targetTag.ftcPose.range;
+                    float StrafeError = (float) targetTag.center.x;
+
+                    if (!Angled) {
+                        SetAngle(AngleError);
+                    }
+                    if (!Centered) {
+                        Center(StrafeError);
+                    }
+                    imu.resetYaw();
+
+                    visionPortal1.stopLiveView();
             }
         }
     }

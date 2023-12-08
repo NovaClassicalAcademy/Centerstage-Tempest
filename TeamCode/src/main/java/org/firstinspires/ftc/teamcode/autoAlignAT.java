@@ -5,9 +5,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit.I
 import android.util.Size;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -28,6 +26,8 @@ public class autoAlignAT extends LinearOpMode {
     boolean Angled;
     boolean Centered;
     boolean DistanceAway;
+
+
 
     private DcMotor frontLeft = null;
     private DcMotor frontRight = null;
@@ -68,13 +68,13 @@ public class autoAlignAT extends LinearOpMode {
         DcMotor backRight = hardwareMap.dcMotor.get("br");
 
         if (AngleError > angleSensitivity) {
-            float Spower = 0.1f;
+            float Spower = 0.2f;
             frontLeft.setPower(-Spower);
             frontRight.setPower(Spower);
             backLeft.setPower(-Spower);
             backRight.setPower(Spower);
         } else if (AngleError < -angleSensitivity) {
-            float Spower = 0.1f;
+            float Spower = 0.2f;
             frontLeft.setPower(Spower);
             frontRight.setPower(-Spower);
             backLeft.setPower(Spower);
@@ -95,13 +95,13 @@ public class autoAlignAT extends LinearOpMode {
         DcMotor frontRight = hardwareMap.dcMotor.get("fr");
         DcMotor backRight = hardwareMap.dcMotor.get("br");
         if (StrafeError < (320 - strafeSensitivity)) {
-            float StPower = 0.15f;
+            float StPower = 0.4f;
             frontLeft.setPower(-StPower);
             frontRight.setPower(StPower);
             backLeft.setPower(StPower);
             backRight.setPower(-StPower);
         } else if (StrafeError > (320 + strafeSensitivity)) {
-            float StPower = 0.15f;
+            float StPower = 0.4f;
             frontLeft.setPower(StPower);
             frontRight.setPower(-StPower);
             backLeft.setPower(-StPower);
@@ -154,33 +154,35 @@ public class autoAlignAT extends LinearOpMode {
 
         waitForStart();
 
-        while (!isStopRequested() && opModeIsActive()) {
+            while(!isStopRequested() && opModeIsActive()) {
 
-            if (tagProcessor1.getDetections().size() > 0) {
-                AprilTagDetection tag = tagProcessor1.getDetections().get(0);
-                //visionPortal1.stopLiveView();
-                float myFPS = visionPortal1.getFps();
-                int AngleError = (int) tag.ftcPose.yaw;
-                int distance = (int) tag.ftcPose.range;
-                float StrafeError = (float) tag.center.x;
+                while(!Angled || !Centered)
+                    {
+                        if (tagProcessor1.getDetections().size() > 0) {
 
+                            AprilTagDetection tag = tagProcessor1.getDetections().get(0);
 
-                if (!Angled) {
-                    SetAngle(AngleError);
-                }else if(!Centered){
-                    Center(StrafeError);
+                            float myFPS = visionPortal1.getFps();
+                            int AngleError = (int) tag.ftcPose.yaw;
+                            int distance = (int) tag.ftcPose.range;
+                            float StrafeError = (float) tag.center.x;
+                        if (!Angled) {
+                            SetAngle(AngleError);
+                        } else if (!Centered) {
+                            Center(StrafeError);
+                        }
+                    }
+
+                    //visionPortal1.stopLiveView();
+                    /*telemetry.addData("center", tag.center);
+                    telemetry.addData("dist from tag: ", distance);
+                    telemetry.addData("Centered", Centered);
+                    telemetry.addData("Angled", Angled);
+                    telemetry.addData("yaw", AngleError);
+                    telemetry.addData("strafeError", StrafeError);
+                    telemetry.addData("fps", myFPS);
+                    telemetry.update();*/
                 }
-
-
-                /*telemetry.addData("center", tag.center);
-                telemetry.addData("dist from tag: ", distance);
-                telemetry.addData("Centered", Centered);
-                telemetry.addData("Angled", Angled);
-                telemetry.addData("yaw", AngleError);
-                telemetry.addData("strafeError", StrafeError);
-                telemetry.addData("fps", myFPS);
-                telemetry.update();*/
             }
         }
     }
-}

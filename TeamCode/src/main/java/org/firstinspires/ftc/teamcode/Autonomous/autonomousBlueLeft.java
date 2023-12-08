@@ -17,7 +17,6 @@ import org.firstinspires.ftc.teamcode.Utilities.ColourMassDetectionProcessor;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.opencv.core.Scalar;
 
-
 @Autonomous
 public class autonomousBlueLeft extends LinearOpMode {
 
@@ -28,12 +27,19 @@ public class autonomousBlueLeft extends LinearOpMode {
     //our blue range
     Scalar lower = new Scalar(101, 50, 38);
     Scalar upper = new Scalar(120, 255, 255);
+
+
     double minArea = 100;
     double distanceRatio = 63.2;
     double StrafeRatio = 74.07;
-    double angleSensitvity = 1.5;
+    double angleSensitvity = 30;
+
+    int moveSpeed = 5; // Range 0-10
+    int strafeSpeed = 1; // Range 0-10
+    int spinSpeed = 2; // Range 0-10
 
     Drivetrain drivetrain = new Drivetrain();
+
     @Override
     public void runOpMode() {
         colourMassDetectionProcessor = new ColourMassDetectionProcessor(
@@ -61,27 +67,22 @@ public class autonomousBlueLeft extends LinearOpMode {
         IMU imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
-                    RevHubOrientationOnRobot.LogoFacingDirection.DOWN, //adjust this
-                    RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD));
+                        RevHubOrientationOnRobot.LogoFacingDirection.DOWN, //adjust this
+                        RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD));
         imu.initialize(parameters);
 
         waitForStart();
 
-        StrafeRight(10);
+        if (visionPortal.getCameraState() == VisionPortal.CameraState.STREAMING) {
+            visionPortal.stopLiveView();
+            visionPortal.stopStreaming();
+        }
 
-        Forward(33);
-        Spin(-90);
-        sleep(500);
-        Backward(5);
-        sleep(1000);
-        //Drop Pixel
-        Backward(6);
-        sleep(1000);
-        //Lift Arm Up
-        Backward(20);
-        sleep(1000);
+        ColourMassDetectionProcessor.PropPositions recordedPropPosition = colourMassDetectionProcessor.getRecordedPropPosition();
 
-
+        if (recordedPropPosition == ColourMassDetectionProcessor.PropPositions.UNFOUND) {
+            recordedPropPosition = ColourMassDetectionProcessor.PropPositions.MIDDLE;
+        }
 
         int frontRightPosition = frontRight.getCurrentPosition();
         int frontLeftPosition = frontLeft.getCurrentPosition();
@@ -89,6 +90,33 @@ public class autonomousBlueLeft extends LinearOpMode {
         int backRightPosition = backRight.getCurrentPosition();
         int robotPosition = (frontRightPosition+frontLeftPosition+backLeftPosition+backRightPosition)/4;
         int positionError;
+
+        switch (recordedPropPosition) {
+            case LEFT:
+
+                break;
+            case MIDDLE:
+                    elbowMotor.getCurrentPosition();
+                    SetElbow(50);
+
+                break;
+            case RIGHT:
+//                StrafeRight(10);
+//
+//                Forward(33);
+//                Spin(-90);
+//                sleep(500);
+//                Backward(5);
+//                sleep(1000);
+//                //Drop Pixel
+//                Backward(6);
+//                sleep(1000);
+//                //Lift Arm Up
+//                Backward(20);
+//                sleep(1000);
+                break;
+        }
+
 
 
         while(opModeIsActive()){
@@ -102,6 +130,7 @@ public class autonomousBlueLeft extends LinearOpMode {
             backRightPosition = backRight.getCurrentPosition();
             robotPosition = (frontRightPosition+frontLeftPosition+backLeftPosition+backRightPosition)/4;
             positionError = (int) (3132.5f + 31.375 - robotPosition);
+            int elbowPosition = elbowMotor.getCurrentPosition();
 
             YawPitchRollAngles robotOrientation;
             robotOrientation = imu.getRobotYawPitchRollAngles();
@@ -116,6 +145,7 @@ public class autonomousBlueLeft extends LinearOpMode {
             telemetry.addData("Error", positionError);
             telemetry.addData("Heading Error", headingError);
             telemetry.addData("Yaw", yaw);
+            telemetry.addData("elbowPos", elbowPosition);
             telemetry.update();
         }
     }
@@ -163,13 +193,25 @@ public class autonomousBlueLeft extends LinearOpMode {
             while(angle - yaw > angleSensitvity){
                 robotOrientation = imu.getRobotYawPitchRollAngles();
                 yaw = robotOrientation.getYaw(AngleUnit.DEGREES);
-                frontLeft.setPower(-0.2);
-                backRight.setPower(0.2);
-                backLeft.setPower(-0.2);
-                frontRight.setPower(0.2);
+                frontLeft.setPower(-spinSpeed*0.1);
+                backRight.setPower(spinSpeed*0.1);
+                backLeft.setPower(-spinSpeed*0.1);
+                frontRight.setPower(spinSpeed*0.1);
                 headingError = angle-yaw;
                 telemetry.addData("Heading Error", headingError);
-                telemetry.addData("Yaw", yaw);
+                telemetry.addData("Test", yaw);
+                telemetry.update();
+            }
+            while(angle - yaw > 1.5){
+                robotOrientation = imu.getRobotYawPitchRollAngles();
+                yaw = robotOrientation.getYaw(AngleUnit.DEGREES);
+                frontLeft.setPower(-0.1);
+                backRight.setPower(0.1);
+                backLeft.setPower(-0.1);
+                frontRight.setPower(0.1);
+                headingError = angle-yaw;
+                telemetry.addData("Heading Error", headingError);
+                telemetry.addData("Test", yaw);
                 telemetry.update();
             }
         }
@@ -177,13 +219,25 @@ public class autonomousBlueLeft extends LinearOpMode {
             while(angle - yaw < angleSensitvity){
                 robotOrientation = imu.getRobotYawPitchRollAngles();
                 yaw = robotOrientation.getYaw(AngleUnit.DEGREES);
-                frontLeft.setPower(0.2);
-                backRight.setPower(-0.2);
-                backLeft.setPower(0.2);
-                frontRight.setPower(-0.2);
+                frontLeft.setPower(0.1);
+                backRight.setPower(-0.1);
+                backLeft.setPower(0.1);
+                frontRight.setPower(-0.1);
                 headingError = -(angle-yaw);
                 telemetry.addData("Heading Error", headingError);
-                telemetry.addData("Yaw", yaw);
+                telemetry.addData("Test", yaw);
+                telemetry.update();
+            }
+            while(angle - yaw > 1.5){
+                robotOrientation = imu.getRobotYawPitchRollAngles();
+                yaw = robotOrientation.getYaw(AngleUnit.DEGREES);
+                frontLeft.setPower(0.1);
+                backRight.setPower(-0.1);
+                backLeft.setPower(0.1);
+                frontRight.setPower(-0.1);
+                headingError = -angle-yaw;
+                telemetry.addData("Heading Error", headingError);
+                telemetry.addData("Test", yaw);
                 telemetry.update();
             }
         }
@@ -230,12 +284,34 @@ public class autonomousBlueLeft extends LinearOpMode {
         int robotPosition = (frontRightPosition+frontLeftPosition+backLeftPosition+backRightPosition)/4;
         int positionError;
 
-        while (distance - robotPosition > 100){
+        while (distance - robotPosition > 400){
             //751.8ticks per rev
-            frontLeft.setPower(0.3);
-            backRight.setPower(0.3);
-            backLeft.setPower(0.3);
-            frontRight.setPower(0.3);
+            frontLeft.setPower(moveSpeed*0.1);
+            backRight.setPower(moveSpeed*0.1);
+            backLeft.setPower(moveSpeed*0.1);
+            frontRight.setPower(moveSpeed*0.1);
+
+            frontRightPosition = frontRight.getCurrentPosition();
+            frontLeftPosition = frontLeft.getCurrentPosition();
+            backLeftPosition = backLeft.getCurrentPosition();
+            backRightPosition = backRight.getCurrentPosition();
+            robotPosition = (frontRightPosition+frontLeftPosition+backLeftPosition+backRightPosition)/4;
+            positionError = (int)(distance - robotPosition);
+
+            telemetry.addData("frontLeftPosition", frontLeftPosition);
+            telemetry.addData("frontRightPosition", frontRightPosition);
+            telemetry.addData("backLeftPosition", backLeftPosition);
+            telemetry.addData("backRightPosition", backRightPosition);
+            telemetry.addData("robotPosition", robotPosition);
+            telemetry.addData("Error", positionError);
+            telemetry.update();
+        }
+        while (distance - robotPosition > 200){
+            //751.8ticks per rev
+            frontLeft.setPower(0.2);
+            backRight.setPower(0.2);
+            backLeft.setPower(0.2);
+            frontRight.setPower(0.2);
 
             frontRightPosition = frontRight.getCurrentPosition();
             frontLeftPosition = frontLeft.getCurrentPosition();
@@ -323,12 +399,33 @@ public class autonomousBlueLeft extends LinearOpMode {
         int robotPosition = (frontRightPosition+frontLeftPosition+backLeftPosition+backRightPosition)/4;
         int positionError;
 
-        while (distance + robotPosition > 100){
+        while (distance + robotPosition > 400){
             //751.8ticks per rev
-            frontLeft.setPower(-0.3);
-            backRight.setPower(-0.3);
-            backLeft.setPower(-0.3);
-            frontRight.setPower(-0.3);
+            frontLeft.setPower(-moveSpeed*0.1);
+            backRight.setPower(-moveSpeed*0.1);
+            backLeft.setPower(-moveSpeed*0.1);
+            frontRight.setPower(-moveSpeed*0.1);
+
+            frontRightPosition = frontRight.getCurrentPosition();
+            frontLeftPosition = frontLeft.getCurrentPosition();
+            backLeftPosition = backLeft.getCurrentPosition();
+            backRightPosition = backRight.getCurrentPosition();
+            robotPosition = (frontRightPosition+frontLeftPosition+backLeftPosition+backRightPosition)/4;
+            positionError = (int) (distance - robotPosition);
+
+            telemetry.addData("frontLeftPosition", frontLeftPosition);
+            telemetry.addData("frontRightPosition", frontRightPosition);
+            telemetry.addData("backLeftPosition", backLeftPosition);
+            telemetry.addData("backRightPosition", backRightPosition);
+            telemetry.addData("robotPosition", robotPosition);
+            telemetry.addData("Error", positionError);
+            telemetry.update();
+        }while (distance + robotPosition > 200){
+            //751.8ticks per rev
+            frontLeft.setPower(-0.2);
+            backRight.setPower(-0.2);
+            backLeft.setPower(-0.2);
+            frontRight.setPower(-0.2);
 
             frontRightPosition = frontRight.getCurrentPosition();
             frontLeftPosition = frontLeft.getCurrentPosition();
@@ -419,10 +516,10 @@ public class autonomousBlueLeft extends LinearOpMode {
 
         while (distance - robotPosition > 10){
             //751.8ticks per rev
-            frontLeft.setPower(-0.1);
-            backRight.setPower(-0.1);
-            backLeft.setPower(0.1);
-            frontRight.setPower(0.1);
+            frontLeft.setPower(-strafeSpeed*0.1);
+            backRight.setPower(-strafeSpeed*0.1);
+            backLeft.setPower(strafeSpeed*0.1);
+            frontRight.setPower(strafeSpeed*0.1);
 
             frontRightPosition = frontRight.getCurrentPosition();
             frontLeftPosition = frontLeft.getCurrentPosition();
@@ -485,10 +582,10 @@ public class autonomousBlueLeft extends LinearOpMode {
 
         while (distance + robotPosition > 10){
             //751.8ticks per rev
-            frontLeft.setPower(0.1);
-            backRight.setPower(0.1);
-            backLeft.setPower(-0.1);
-            frontRight.setPower(-0.1);
+            frontLeft.setPower(strafeSpeed*0.1);
+            backRight.setPower(strafeSpeed*0.1);
+            backLeft.setPower(-strafeSpeed*0.1);
+            frontRight.setPower(-strafeSpeed*0.1);
 
             frontRightPosition = frontRight.getCurrentPosition();
             frontLeftPosition = frontLeft.getCurrentPosition();
@@ -514,5 +611,43 @@ public class autonomousBlueLeft extends LinearOpMode {
         frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    }
+
+    int liftSensitivity = 5;
+    int elbowSensitivity = 5;
+    int liftSpeed = 2; // 0-10
+    int elbowSpeed = 3; // 0-10
+    int liftPos;
+    int elbowPos;
+
+    public void SetElbow(int position){
+        DcMotor elbow = hardwareMap.dcMotor.get("elbow");
+        elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        int originalElbowPosition = elbowPos;
+
+        if(position > elbowPos) {
+            while (position - elbowPos > elbowSensitivity) {
+                elbowPos = originalElbowPosition + elbow.getCurrentPosition();
+                elbow.setPower(elbowSpeed / 10);
+
+                telemetry.addData("Elbow Position = ", elbowPos);
+                telemetry.addData("Error Elbow = ", (position - elbowPos));
+                telemetry.update();
+            }
+        }else if(position < elbowPos) {
+            while(elbowPos - position > elbowSensitivity){
+                elbowPos = originalElbowPosition - elbow.getCurrentPosition();
+                elbow.setPower(-elbowSpeed / 10);
+
+                telemetry.addData("Elbow Position = ", elbowPos);
+                telemetry.addData("Error Elbow = ", (-position + elbowPos));
+                telemetry.update();
+            }
+        }
+        elbow.setPower(0);
+        elbowPos = originalElbowPosition + elbow.getCurrentPosition();
     }
 }
